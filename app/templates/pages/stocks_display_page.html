@@ -1,0 +1,26 @@
+<div class="content">
+     <div class="container-fluid">
+         <div class="col">
+             <div class="card">
+                <div class="card-header ">
+                  <div class="row">
+                    <h4 class="card-title">HSI Heng Seng Index Components</h4>
+                  </div>
+                </div>
+                 <div class="card-body table-responsive">
+                  <table class="table table-hover">
+                      <tbody>
+                      {% for stock_row in lst | batch(3, '&nbsp;') %}
+                            <tr>
+                                {% for stock in stock_row %}
+                                <td class="span4"><a href="/hsi/{{stock}}">{{ stock }}</a></td>
+                                {% endfor %}
+                            </tr>
+                      {% endfor %}
+                      </tbody>
+                  </table>
+                 </div>
+             </div>
+         </div>
+     </div>
+</div>

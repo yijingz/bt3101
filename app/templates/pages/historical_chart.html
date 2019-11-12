@@ -1,0 +1,28 @@
+<div class="col">
+              <div class="card">
+                <div class="card-header ">
+                    <h4 class="card-title">Stock Historical Price Visualisation</h4>
+                    <div class="card-body">
+                        <div id="linejson"></div>
+                    </div>
+
+                </div>
+              </div>
+</div>
+
+<footer>
+    <!-- D3.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <script type="text/javascript">
+        var line = {{linejson | safe}};
+        Plotly.plot('linejson', // the ID of the div, created above
+                        line.data,
+                        line.layout || {});
+
+    </script>
+</footer>

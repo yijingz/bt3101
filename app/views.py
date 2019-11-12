@@ -5,7 +5,7 @@ Author: AppSeed.us - App Generator
 """
 
 # all the imports necessary
-from flask import json, url_for, redirect, render_template, flash, g, session, jsonify, request, send_from_directory
+from flask import json, url_for, redirect, render_template, flash, g, session, jsonify, request, send_from_directory, render_template_string
 from werkzeug.exceptions import HTTPException, NotFound, abort
 
 import os
@@ -193,6 +193,182 @@ def index(path):
                                 content=render_template( 'pages/'+path) )
     except:
         abort(404)
+
+@app.route('/hsi')
+def stock_display_page():
+    from os import listdir
+    from os.path import isfile, join
+
+    path = '/Users/miazhang/flask-material-dashboard/app/data'
+    stock_files = [f for f in listdir(path) if isfile(join(path, f))]
+    stock_files_without_csv = list(map(lambda x: x[:-4], stock_files))
+    return render_template('layouts/default.html',
+                           content=render_template('pages/stocks_display_page.html', lst=stock_files_without_csv))
+
+
+
+
+@app.route('/hsi/<comp>')
+def stock_page(comp):
+    from app import stock_analysis as sa
+    from app import company_profile as cp
+    import math
+    company = cp.get_company_name(comp)
+    company_name = company[0]
+    industry = company[1]
+
+    profile_dic = cp.get_historical_price_summary(comp)
+
+    data = sa.preprocess_data(comp)
+    gjson = sa.get_tempo_buying_chart(data)
+
+
+    from app import sales_volume as sv
+    parameter_dic = sv.get_alpha_delta_adtv(comp, 0)
+    extra_dic = sv.get_sig_gamma_eta(comp)
+
+    def myround(n):
+        if n == 0:
+            return 0
+        sgn = -1 if n < 0 else 1
+        scale = int(-math.floor(math.log10(abs(n))))
+        if scale <= 0:
+            scale = 1
+        factor = 10 ** scale
+        return sgn * math.floor(abs(n) * factor) / factor
+
+    for par in extra_dic:
+        val = myround(extra_dic[par])
+        extra_dic[par] = val
+
+
+    return render_template('layouts/default.html',
+                                content=render_template('pages/' + 'index.html', comp=comp, graphJSON=gjson, company_name=company_name, industry=industry, profile_dic=profile_dic,
+                                                        parameter_dic=parameter_dic, extra_dic=extra_dic))
+
+
+@app.route('/show_history')
+def show_history():
+    from app import stock_analysis as sa
+
+    text = request.args.get('jsdata')
+    linejson = sa.get_historical_chart(text)
+
+    return render_template('pages/historical_chart.html', linejson=linejson)
+
+global num
+global days
+global spread
+
+global optimal_cost
+global sig_gamma_eta_dic
+global x
+
+@app.route('/get_num_shares', methods=['GET', 'POST'])
+def get_num_shares():
+
+    if request.method == 'GET':
+        from app import sales_volume as sv
+        import pickle
+
+
+        text = request.args.get('jsdata')
+        num = int(request.args.get('num'))
+        lamb = request.args.get('lamb')
+        days = request.args.get('days')
+        spread = float(request.args.get('spread'))/100
+
+
+        output_dic = sv.get_alpha_delta_adtv(text, num)
+
+        if not lamb:
+            lamb = 10**(-6)
+        if not days:
+            days = output_dic['days']
+
+        stock_output_dic = {}
+        stock_output_dic['num'] = num
+        stock_output_dic['lamb'] = lamb
+        stock_output_dic['days'] = days
+
+
+        sig_gamma_eta_dic = sv.get_sig_gamma_eta(text)
+
+        x = sv.get_trajectory(lamb, sig_gamma_eta_dic['sigma'], sig_gamma_eta_dic['gamma'], sig_gamma_eta_dic['eta'], int(num), days)
+        sales_df = sv.get_optimal_sales_df(x, int(num), days)
+
+        optimal_cost = sv.get_optimal_cost(x, sig_gamma_eta_dic['gamma'], num, spread, sig_gamma_eta_dic['eta'])
+
+        daily_sales_dic = sv.get_daily_sales_dic(sales_df)
+        barjson = sv.get_sales_chart(sales_df)
+        position_bar_json = sv.get_position_chart(sales_df)
+
+        delta_lst = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1]
+        add_cost_lst = []
+        for delta in delta_lst:
+            cost = sv.get_additional_cost(delta, x,  sig_gamma_eta_dic['gamma'], num, sig_gamma_eta_dic['eta'], spread, optimal_cost)
+            add_cost_lst.append(cost)
+
+        params = {}
+        params['num'] = num
+        params['days'] = days
+        params['spread'] = spread
+        params['optimal_cost'] = optimal_cost
+        params['sig_gamma_eta_dic'] = sig_gamma_eta_dic
+        params['x'] = x
+
+        with open('params.pickle', 'wb') as handle:
+            pickle.dump(params, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+        return render_template('pages/sales_volume.html', output_dic=stock_output_dic, optimal_cost=optimal_cost,
+                               delta_lst=delta_lst, delta_cost=add_cost_lst,
+                               daily_dic=daily_sales_dic,barjson=barjson, position_barjson=position_bar_json)
+
+    elif request.method == 'POST':
+        print('method is post')
+
+
+@app.route('/get_additional_cost_traj', methods=['GET', 'POST'])
+def get_additional_cost_traj():
+    if request.method == 'GET':
+        from app import sales_volume as sv
+        import pickle
+
+        delta_index = int(request.args.get('delta'))
+
+        with open('params.pickle', 'rb') as handle:
+            param = pickle.load(handle)
+
+        delta_lst = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 1]
+        delta = delta_lst[delta_index]
+        print('delta, ', delta)
+
+
+        num = param['num']
+        days = param['days']
+        spread = param['spread']
+        optimal_cost = param['optimal_cost']
+        sig_gamma_eta_dic = param['sig_gamma_eta_dic']
+        x = param['x']
+
+        traj = sv.get_new_traj(delta, x, sig_gamma_eta_dic['gamma'], num, sig_gamma_eta_dic['eta'], spread, optimal_cost)
+        new_x = traj[0]
+        cost = traj[1]
+        sales_df = sv.get_optimal_sales_df(new_x, num, days)
+        daily_sales_dic_new = sv.get_daily_sales_dic(sales_df)
+        barjson = sv.get_sales_chart(sales_df)
+        position_bar_json = sv.get_position_chart(sales_df)
+
+        return render_template('pages/additional_cost.html', daily_dic_new=daily_sales_dic_new, barjson=barjson, position_bar_json=position_bar_json, cost=cost)
+      #  return render_template_string(str(delta))
+
+
+
+
+
+
+
 
 #@app.route('/favicon.ico')
 #def favicon():

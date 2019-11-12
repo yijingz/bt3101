@@ -1,0 +1,145 @@
+<div class="col">
+              <div class="card">
+                <div class="card-header ">
+                    <h4 class="card-title">Recommended Trading Strategy</h4>
+                    <div class="card-body">
+
+                        <div class="card-body table-responsive">
+                          <table class="table table-hover">
+                              <thead class="text-warning">
+                              <tr>
+                                  <td colspan="10"><i style="float: left;" class="material-icons">label</i> <h5><b>Optimal Trajectory </b></h5></td>
+                                  <td>                             </td>
+                                  <td></td>
+                                  <td></td>
+                                  <td></td>
+                                  <td colspan="10"><h5><b>Optimal Cost: $ {{optimal_cost}}</b></h5></td>
+                              </tr>
+                              </thead>
+                            <tbody>
+                            <tr>
+                              <td>
+                                  <b>Number of Shares</b>
+                              </td>
+                              <td >
+                                  {{output_dic['num']}}
+                              </td>
+                              <td>
+                                  <b>Lambda</b>
+                              </td>
+                              <td >
+                                  {{output_dic['lamb']}}
+                              </td>
+                                <td>
+                                    <b>Number of Days to Liquidate</b>
+                                </td>
+                                <td>
+                                    {{output_dic['days']}}
+                                </td>
+                            </tr>
+                            </tbody>
+                          </table>
+                            <div id="barjson"></div>
+                            <button class="btn btn-primary" onclick="toggleTable()">Toggle Daily Sales Table</button>
+                            <div class="card-body table-responsive" id="daily_table" style="display:none;">
+                                <table class="table table-hover">
+                                  <tr>
+                                    <th>Date</th>
+                                      <th></th>
+                                      <th></th>
+                                    <th>Shares to sell</th>
+                                  </tr>
+                                  {% for day in daily_dic%}
+                                    <tr>
+                                        <td><b>{{day}}</b></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td>{{daily_dic[day]}}</td>
+                                    </tr>
+                                    {% endfor%}
+                                </table>
+                            </div>
+                            <div id="posbar"></div>
+
+                            <table class="table table-hover" id="choose">
+                              <thead class="text-warning">
+                              <tr>
+                                  <td colspan="10"><i style="float: left;" class="material-icons">label</i> <h5><b>Additional Cost </b></h5></td>
+                              </tr>
+                              <tr><th>Delta Value</th><th>Additional Cost (Estimated)</th><th> </th></tr>
+                              </thead>
+                                <tbody>
+                                {% for i in range(delta_lst|length)%}
+                                <tr>
+                                    <td>{{delta_lst[i]}}</td>
+                                    <td>$ {{delta_cost[i]}}</td>
+                                    <td>
+                                    <form method="get" id={{i}} >
+                                        <input type="hidden" id="delta" value="{{ delta_lst[i] }}"/>
+                                        <input type="submit" name="submit_button" class="btn btn-xs btn-success" value="Choose"/>
+                                      </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+
+                                </tbody>
+                            </table>
+
+                            <div id="additional_cost"></div>
+                        </div>
+
+                    </div>
+
+                </div>
+              </div>
+</div>
+
+<footer>
+    <!-- D3.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <script type="text/javascript">
+        var bar = {{barjson | safe}};
+        Plotly.plot('barjson', // the ID of the div, created above
+                        bar.data,
+                        bar.layout || {});
+
+        var posbar = {{position_barjson | safe}};
+        Plotly.plot('posbar', // the ID of the div, created above
+                        posbar.data,
+                        posbar.layout || {});
+
+        function toggleTable() {
+          var x = document.getElementById("daily_table");
+          if (x.style.display === "none") {
+            x.style.display = "block";
+          } else {
+            x.style.display = "none";
+          }
+        }
+
+        $("form").on("submit", function(e){
+                e.preventDefault();
+                var x = document.getElementById("choose");
+                x.style.display = "none";
+
+                var delta = this.id;
+
+                    $.ajax({
+                      url: "/get_additional_cost_traj",
+                      type: "get",
+                      data: {delta: delta},
+                      success: function(response) {
+                        $("#additional_cost").html(response);
+                        console.log(data);
+                      }
+
+                    });
+                });
+
+    </script>
+</footer>

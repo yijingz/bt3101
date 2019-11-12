@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<body>
+<hr>
+<table>
+    <thead class="text-warning">
+<tr>
+    <td colspan="10"><i style="float: left;" class="material-icons">label</i> <h5><b>Trajectory with Additional Cost</b></h5></td>
+    <td colspan="10"><h5><b>Total Cost: $ {{cost}}</b></h5></td>
+</tr>
+    </thead>
+</table>
+
+<div id="barjson_new"></div>
+<button class="btn btn-primary" onclick="toggleTableNew()">Toggle Daily Sales Table</button>
+                            <div class="card-body table-responsive" id="daily_table_new" style="display:none;">
+                                <table class="table table-hover">
+                                  <tr>
+                                    <th>Date</th>
+                                      <th></th>
+                                      <th></th>
+                                    <th>Shares to sell</th>
+                                  </tr>
+                                  {% for day in daily_dic_new%}
+                                    <tr>
+                                        <td><b>{{day}}</b></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td>{{daily_dic_new[day]}}</td>
+                                    </tr>
+                                    {% endfor%}
+                                </table>
+                            </div>
+<div id="posbar_new"></div>
+
+
+
+</body>
+</html>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <script type="text/javascript">
+        var bar = {{barjson | safe}};
+        Plotly.plot('barjson_new', // the ID of the div, created above
+                        bar.data,
+                        bar.layout || {});
+
+        var posbar = {{position_bar_json | safe}};
+        Plotly.plot('posbar_new', // the ID of the div, created above
+                        posbar.data,
+                        posbar.layout || {});
+
+        function toggleTableNew() {
+          var x = document.getElementById("daily_table_new");
+          if (x.style.display === "none") {
+            x.style.display = "block";
+          } else {
+            x.style.display = "none";
+          }
+        }
+
+
+        </script>
