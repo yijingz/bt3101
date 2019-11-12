@@ -276,8 +276,7 @@ def get_num_shares():
         num = int(request.args.get('num'))
         lamb = request.args.get('lamb')
         days = request.args.get('days')
-        spread = float(request.args.get('spread'))/100
-
+        spread = request.args.get('spread')
 
         output_dic = sv.get_alpha_delta_adtv(text, num)
 
@@ -285,6 +284,10 @@ def get_num_shares():
             lamb = 10**(-6)
         if not days:
             days = output_dic['days']
+        if not spread:
+            spread = 0.189
+        else:
+            spread = float(spread)/100
 
         stock_output_dic = {}
         stock_output_dic['num'] = num
@@ -296,10 +299,11 @@ def get_num_shares():
 
         x = sv.get_trajectory(lamb, sig_gamma_eta_dic['sigma'], sig_gamma_eta_dic['gamma'], sig_gamma_eta_dic['eta'], int(num), days)
         sales_df = sv.get_optimal_sales_df(x, int(num), days)
-
         optimal_cost = sv.get_optimal_cost(x, sig_gamma_eta_dic['gamma'], num, spread, sig_gamma_eta_dic['eta'])
 
         daily_sales_dic = sv.get_daily_sales_dic(sales_df)
+
+
         barjson = sv.get_sales_chart(sales_df)
         position_bar_json = sv.get_position_chart(sales_df)
 
@@ -321,8 +325,8 @@ def get_num_shares():
             pickle.dump(params, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-        return render_template('pages/sales_volume.html', output_dic=stock_output_dic, optimal_cost=optimal_cost,
-                               delta_lst=delta_lst, delta_cost=add_cost_lst,
+        return render_template('pages/sales_volume.html', days=len(sales_df), output_dic=stock_output_dic, optimal_cost='{0:,}'.format(optimal_cost),
+                               delta_lst=delta_lst, delta_cost=add_cost_lst,spread=spread,
                                daily_dic=daily_sales_dic,barjson=barjson, position_barjson=position_bar_json)
 
     elif request.method == 'POST':
@@ -356,11 +360,12 @@ def get_additional_cost_traj():
         new_x = traj[0]
         cost = traj[1]
         sales_df = sv.get_optimal_sales_df(new_x, num, days)
+
         daily_sales_dic_new = sv.get_daily_sales_dic(sales_df)
         barjson = sv.get_sales_chart(sales_df)
         position_bar_json = sv.get_position_chart(sales_df)
 
-        return render_template('pages/additional_cost.html', daily_dic_new=daily_sales_dic_new, barjson=barjson, position_bar_json=position_bar_json, cost=cost)
+        return render_template('pages/additional_cost.html', daily_dic_new=daily_sales_dic_new, barjson=barjson, position_bar_json=position_bar_json, cost='{0:,}'.format(cost))
       #  return render_template_string(str(delta))
 
 

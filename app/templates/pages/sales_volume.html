@@ -8,15 +8,12 @@
                           <table class="table table-hover">
                               <thead class="text-warning">
                               <tr>
-                                  <td colspan="10"><i style="float: left;" class="material-icons">label</i> <h5><b>Optimal Trajectory </b></h5></td>
-                                  <td>                             </td>
+                                  <td colspan="5"><i style="float: left;" class="material-icons">label</i> <h5><b>Optimal Trajectory </b></h5></td>
                                   <td></td>
-                                  <td></td>
-                                  <td></td>
-                                  <td colspan="10"><h5><b>Optimal Cost: $ {{optimal_cost}}</b></h5></td>
+                                  <td colspan="1"><h5><b>Optimal Cost: $ {{optimal_cost}}</b></h5></td>
                               </tr>
                               </thead>
-                            <tbody>
+                            <tbody style="width=100%">
                             <tr>
                               <td>
                                   <b>Number of Shares</b>
@@ -31,10 +28,16 @@
                                   {{output_dic['lamb']}}
                               </td>
                                 <td>
+                                  <b>Bid Ask Spread</b>
+                              </td>
+                              <td >
+                                  {{spread}}
+                              </td>
+                                <td>
                                     <b>Number of Days to Liquidate</b>
                                 </td>
                                 <td>
-                                    {{output_dic['days']}}
+                                    {{days}}
                                 </td>
                             </tr>
                             </tbody>
@@ -66,7 +69,7 @@
                               <tr>
                                   <td colspan="10"><i style="float: left;" class="material-icons">label</i> <h5><b>Additional Cost </b></h5></td>
                               </tr>
-                              <tr><th>Delta Value</th><th>Additional Cost (Estimated)</th><th> </th></tr>
+                              <tr><th>Delta Value (Degree of Randomness)</th><th>Additional Cost (Estimated)</th><th> </th></tr>
                               </thead>
                                 <tbody>
                                 {% for i in range(delta_lst|length)%}
