@@ -1,10 +1,9 @@
-# [Flask Material Dashboard](https://appseed.us/admin-dashboards/flask-dashboard-material-design)
+# built upon: [Flask Material Dashboard](https://appseed.us/admin-dashboards/flask-dashboard-material-design)
 
 Open-Source **admin dashboard** with **Material Design** coded in **Flask**.
 
 <br />
 
-![Flask Material Dashboard - Gif animated intro.](https://github.com/app-generator/flask-material-dashboard/blob/master/screenshots/flask-material-dashboard-intro.gif)
 
 <br />
 
@@ -12,7 +11,7 @@ Open-Source **admin dashboard** with **Material Design** coded in **Flask**.
 
 1. Clone the repo
   ```
-  $ git clone https://github.com/app-generator/flask-material-dashboard.git
+  $ git clone https://github.com/yijingz/bt3101.git
   $ cd flask-material-dashboard
   ```
 
@@ -36,30 +35,8 @@ Open-Source **admin dashboard** with **Material Design** coded in **Flask**.
 
 <br />
 
-## Features
 
-- SQLite database
-- Login, Register
-- Static Build `python ./static.py`. The static build goes to `app/build` directory 
-- FTP Deploy script. **Info**: this `require node.js` and the edit of `deploy.js` to add FTP server credentials. 
 
-<br />
-
-## Support
-
-For issues and features request, use **Github** or access the [support page](https://appseed.us/support) provided by **AppSeed** 
-
-<br />
-
-## App Screenshots
-
-![Flask Dashboard](https://github.com/app-generator/flask-material-dashboard/blob/master/screenshots/flask-material-dashboard-notif.jpg)
-
-<br />
-
-![Flask Dashboard Material - App Screenshot](https://github.com/app-generator/flask-material-dashboard/blob/master/screenshots/flask-material-dashboard-profile.jpg)
-
-<br />
 
 ## Resources
 
